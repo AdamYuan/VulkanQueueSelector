@@ -482,7 +482,7 @@ void queryFree(VqsQuery query) {
 }
 
 VkResult vqsCreateQuery(const VqsQueryCreateInfo *pCreateInfo, VqsQuery *pQuery) {
-	VQS_ALLOC_VK(*pQuery, VqsQuery_T, 1);
+	VQS_ALLOC_VK(*pQuery, struct VqsQuery_T, 1);
 
 #define TRY_STMT(stmt)                                                                                                 \
 	{                                                                                                                  \

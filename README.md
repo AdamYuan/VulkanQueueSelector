@@ -1,11 +1,12 @@
 # Vulkan Queue Selector
 An single-header c library to select optimal vulkan queues.
 # Usage
+Check [test/main.cpp!](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/test/main.cpp) for details.
 ```c++
 VqsQueueRequirements requirements[] = {
-	{VK_QUEUE_GRAPHICS_BIT, 1.0f, surface}, // "surface" is a VkSurfaceKHR, indicating a present queue is needed
-	{VK_QUEUE_TRANSFER_BIT, 0.8f, nullptr},
-	{VK_QUEUE_COMPUTE_BIT, 1.0f, nullptr}
+    {VK_QUEUE_GRAPHICS_BIT, 1.0f, surface}, // "surface" is a VkSurfaceKHR, indicating a present queue is needed
+    {VK_QUEUE_TRANSFER_BIT, 0.8f, nullptr},
+    {VK_QUEUE_COMPUTE_BIT, 1.0f, nullptr}
 };
 
 VqsQueryCreateInfo createInfo = {};
@@ -24,7 +25,11 @@ vqsCreateQuery(&createInfo, &query); // Create a VqsQuery object, return VK_SUCC
 
 vqsPerformQuery(query); // Perform the query, return VK_SUCCESS if the requirements can be met
 
-// Get queue selections
+// Get queue selections, the returned structures are defined as the following:
+// typedef struct VqsQueueSelection {
+//     uint32_t queueFamilyIndex, queueIndex;
+//     uint32_t presentQueueFamilyIndex, presentQueueIndex;
+// } VqsQueueSelection;
 std::vector<VqsQueueSelection> selections;
 selections.resize(std::size(requirements));
 vqsGetQueueSelections(query, selections.data());
@@ -40,7 +45,8 @@ vqsEnumerateDeviceQueueCreateInfos(query, &queueCreateInfoCount, queueCreateInfo
 vqsDestroyQuery(query);
 ```
 # Strategy
-The library will try to distribute **queue requirements** evenly into each queue family, which means the parallel performance of GPUs can be utilized. For all the queue families that meet a requirement, the ones with similar properties are preferred. Queue requirements with higher **priority** value is more likely to be assigned to an exclusive queue family.  
+The library will try to distribute **queue requirements** evenly into each queue family, which means the concurrent computation performance of modern GPUs can be utilized.  
+For all the queue families that meet a requirement, the ones with similar properties are preferred. Queue requirements with higher **priority** value is more likely to be assigned to an exclusive queue family.  
 Requirements for present queues are bound to a regular queue requirement since these two queues are preferred to be the same **VkQueue**. They will be separate only if a queue family that both support present and meet the regular requirement doesn't exist.
 # Algorithm
 In this library, the queue selection problem is abstracted as a **binary graph minimum-cost flow problem**.

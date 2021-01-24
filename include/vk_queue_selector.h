@@ -1,10 +1,11 @@
-// vk_queue_selector - v1.01 - https://github.com/AdamYuan/
+// vk_queue_selector - v1.0.2 - https://github.com/AdamYuan/
 //
 // Use this in *one* source file
 //   #define VQS_IMPLEMENTATION
 //   #include "vk_queue_selector.h"
 //
-// version 1.0.1 (2021-01-24) move all graph-related things to vqsPerformQuery
+// version 1.0.2 (2021-01-24) name private struct and func with "vqs__" prefix
+//         1.0.1 (2021-01-24) move all graph-related things to vqsPerformQuery
 //                            fix leaks and memory errors
 //         1.0.0 (2021-01-24)
 //
@@ -81,27 +82,28 @@ VQS_API void vqsEnumerateDeviceQueueCreateInfos(VqsQuery query, uint32_t *pDevic
 #define VQS_STATIC_VULKAN_FUNCTIONS 1
 #endif
 
-struct Node;
-typedef struct Edge {
-	struct Node *to;
-	struct Edge *next, *rev;
+struct vqs__Node;
+typedef struct vqs__Edge {
+	struct vqs__Node *to;
+	struct vqs__Edge *next, *rev;
 	int32_t cap, cost;
-} Edge;
-typedef struct Node {
-	Edge *head, *path;
+} vqs__Edge;
+typedef struct vqs__Node {
+	vqs__Edge *head, *path;
 	int32_t dist, flow;
 	bool inQueue;
-} Node;
+} vqs__Node;
 
 struct VqsQuery_T {
+	// BASICS
 	VkPhysicalDevice physicalDevice;
 	VqsVulkanFunctions vulkanFunctions;
 	VkQueueFamilyProperties *queueFamilyProperties;
 	VqsQueueRequirements *queueRequirements;
 	uint32_t queueFamilyCount, queueRequirementCount;
 	// BINARY GRAPH
-	Node *nodes, *pLeftNodes, *pRightNodes, *pSNode, *pTNode, **spfaQueue;
-	Edge *edges, *pInteriorEdges, *pLeftEdges, *pRightEdges;
+	vqs__Node *nodes, *pLeftNodes, *pRightNodes, *pSNode, *pTNode, **spfaQueue;
+	vqs__Edge *edges, *pInteriorEdges, *pLeftEdges, *pRightEdges;
 	int32_t *minInteriorCosts;                 // the min interior edge cost for each left nodes
 	uint32_t leftCount, rightCount, nodeCount; // leftCount = queueFamilyCount, rightCount = queueRequirementCount
 	uint32_t interiorEdgeCount, edgeCount;
@@ -139,7 +141,8 @@ static uint32_t vqs__queueFlagDist(uint32_t l, uint32_t r, float f) {
 	return (uint32_t)ret;
 }
 
-static void vqs__addEdge(Edge *edge, Edge *edgeRev, Node *from, Node *to, int32_t cap, int32_t cost) {
+static void vqs__addEdge(vqs__Edge *edge, vqs__Edge *edgeRev, vqs__Node *from, vqs__Node *to, int32_t cap,
+                         int32_t cost) {
 	edge->to = to;
 	edge->next = from->head;
 	edge->rev = edgeRev;
@@ -216,11 +219,11 @@ static bool vqs__querySpfa(VqsQuery query) {
 	QUE_PUSH(query->pSNode);
 
 	while (queTop != queTail) {
-		Node *cur = QUE_POP;
+		vqs__Node *cur = QUE_POP;
 		cur->inQueue = false;
 		// printf("node: %u, dist: %d\n", cur - query->nodes, cur->dist);
 
-		for (Edge *e = cur->head; e; e = e->next) {
+		for (vqs__Edge *e = cur->head; e; e = e->next) {
 			if (e->cap > 0 && e->to->dist > cur->dist + e->cost) {
 				e->to->dist = cur->dist + e->cost;
 				e->to->path = e;
@@ -255,7 +258,7 @@ static int32_t vqs__queryMcmfWithLimits(VqsQuery query, int32_t flow, uint32_t *
 				}
 			}
 			for (uint32_t i = 0; i < query->interiorEdgeCount; i += 2) { // cancel negative rings
-				Edge *e = query->pInteriorEdges + i;
+				vqs__Edge *e = query->pInteriorEdges + i;
 				if (e->cost > minCost)
 					e->rev->cap = 0;
 			}
@@ -276,7 +279,7 @@ static int32_t vqs__queryMcmfWithLimits(VqsQuery query, int32_t flow, uint32_t *
 			int32_t x = query->pTNode->flow;
 			flow += x;
 
-			Node *cur = query->pTNode;
+			vqs__Node *cur = query->pTNode;
 			while (cur != query->pSNode) {
 				cur->path->cap -= x;
 				cur->path->rev->cap += x;
@@ -377,11 +380,11 @@ static VkResult vqs__queryBuildGraph(VqsQuery query) {
 
 	// ALLOC GRAPH
 	query->nodeCount = query->leftCount + query->rightCount + 2u;
-	VQS_ALLOC_VK(query->nodes, Node, query->nodeCount);
+	VQS_ALLOC_VK(query->nodes, vqs__Node, query->nodeCount);
 
 	query->interiorEdgeCount = vqs__queryBuildInteriorEdges(query, false);
 	query->edgeCount = query->interiorEdgeCount + (query->leftCount + query->rightCount) * 2u;
-	VQS_ALLOC_VK(query->edges, Edge, query->edgeCount);
+	VQS_ALLOC_VK(query->edges, vqs__Edge, query->edgeCount);
 
 	// not needed since calloc is used
 	/*for (uint32_t i = 0; i < query->nodeCount; ++i) {
@@ -414,14 +417,14 @@ static VkResult vqs__queryBuildGraph(VqsQuery query) {
 	}
 
 	for (uint32_t i = 0; i < query->interiorEdgeCount; i += 2) {
-		Edge *e = query->pInteriorEdges + i;
+		vqs__Edge *e = query->pInteriorEdges + i;
 		int32_t *target = query->minInteriorCosts + (e->rev->to - query->pLeftNodes);
 		if (e->cost < *target)
 			*target = e->cost;
 	}
 
 	// ALLOC SPFA QUEUE
-	VQS_ALLOC_VK(query->spfaQueue, Node *, query->nodeCount);
+	VQS_ALLOC_VK(query->spfaQueue, vqs__Node *, query->nodeCount);
 
 	return VK_SUCCESS;
 }
@@ -455,7 +458,7 @@ static VkResult vqs__queryMainAlgorithm(VqsQuery query) {
 static VkResult vqs__queryFetchResults(VqsQuery query) {
 	// FETCH RESULTS
 	for (uint32_t i = 0; i < query->interiorEdgeCount; i += 2) {
-		Edge *e = query->pInteriorEdges + i;
+		vqs__Edge *e = query->pInteriorEdges + i;
 		if (e->cap == 0) {
 			query->resultQueueFamilyIndices[e->to - query->pRightNodes] = e->rev->to - query->pLeftNodes;
 		}

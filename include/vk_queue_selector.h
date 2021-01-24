@@ -617,6 +617,7 @@ void vqsEnumerateDeviceQueueCreateInfos(VqsQuery query, uint32_t *pDeviceQueueCr
 }
 
 #undef VQS_ALLOC_VK
+#undef VQS_ALLOC
 #undef VQS_FREE
 
 #endif // VQS_IMPLEMENTATION

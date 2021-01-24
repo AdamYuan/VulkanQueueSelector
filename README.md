@@ -6,7 +6,7 @@ Check [test/main.cpp](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/
 VqsQueueRequirements requirements[] = {
     {VK_QUEUE_GRAPHICS_BIT, 1.0f, surface}, // "surface" is a VkSurfaceKHR, indicating a present queue is needed
     {VK_QUEUE_TRANSFER_BIT, 0.8f, nullptr},
-    {VK_QUEUE_COMPUTE_BIT, 1.0f, nullptr}
+    {VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT, 1.0f, nullptr}
 };
 
 VqsQueryCreateInfo createInfo = {};

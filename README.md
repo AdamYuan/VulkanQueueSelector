@@ -1,6 +1,6 @@
 # Vulkan Queue Selector
 An single-header c library to select optimal vulkan queues.
-# Usage
+## Usage
 Check [test/main.cpp](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/test/main.cpp) for details.
 ```c++
 VqsQueueRequirements requirements[] = {
@@ -44,12 +44,12 @@ vqsEnumerateDeviceQueueCreateInfos(query, &queueCreateInfoCount, queueCreateInfo
 // Destroy the object
 vqsDestroyQuery(query);
 ```
-# Strategy
-The library will try to distribute **queue requirements** evenly into each queue family, which means the concurrent computation performance of modern GPUs can be utilized.  
-For all the queue families that meet a requirement, the ones with similar properties are preferred. Queue requirements with higher **priority** value is more likely to be assigned to an exclusive queue family.  
-Requirements for present queues are bound to a regular queue requirement since these two queues are preferred to be the same **VkQueue**. They will be separate only if a queue family that both support present and meet the regular requirement doesn't exist.
-# Algorithm
-In this library, the queue selection problem is abstracted as a **binary graph minimum-cost flow problem**.
+## Strategy
+* The library will try to distribute **queue requirements** evenly into each queue family, which means the concurrent computation performance of modern GPUs can be utilized.  
+* For all the queue families that meet a requirement, the ones with similar properties are preferred. Queue requirements with higher **priority** value is more likely to be assigned to an exclusive queue family.  
+* Requirements for present queues are bound to a regular queue requirement since these two queues are preferred to be the same **VkQueue**. They will be separate only if a queue family that both support present and meet the regular requirement doesn't exist.
+## Algorithm
+* In this library, the queue selection problem is abstracted as a **binary graph minimum-cost flow problem**.
 ```
                                    Requirement 1 +-----+
      +----> Queue Family 1                             |
@@ -59,5 +59,5 @@ In this library, the queue selection problem is abstracted as a **binary graph m
      +----> Queue Family 3                             |
                                    Requirement 4 +-----+
 ```
-In the binary graph, an inner edge indicates that a queue family can meet a requirement, whose **cost** is calculated based on requirement priority and the property differences.  
-The capacity of edges from source to queue families is synchronously added by one each time to ensure the requirements evenly being assigned.
+* In the binary graph, an inner edge indicates that a queue family can meet a requirement, whose **cost** is calculated based on requirement priority and the property differences.  
+* The capacity of edges from source to queue families is synchronously added by one each time to ensure the requirements evenly being assigned.

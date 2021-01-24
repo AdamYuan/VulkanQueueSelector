@@ -179,8 +179,8 @@ static uint32_t vqs__queryBuildInteriorEdges(VqsQuery query, bool buildEdge) {
 				if (presentSupport && (flags & requiredFlags) == requiredFlags) {
 					if (buildEdge) {
 						vqs__addEdge(query->pInteriorEdges + counter, query->pInteriorEdges + counter + 1,
-						        query->pLeftNodes + i, query->pRightNodes + j, 1,
-						        vqs__queueFlagDist(flags, requiredFlags, priority));
+						             query->pLeftNodes + i, query->pRightNodes + j, 1,
+						             vqs__queueFlagDist(flags, requiredFlags, priority));
 					}
 					counter += 2u;
 				}
@@ -188,8 +188,8 @@ static uint32_t vqs__queryBuildInteriorEdges(VqsQuery query, bool buildEdge) {
 				if ((flags & requiredFlags) == requiredFlags) {
 					if (buildEdge) {
 						vqs__addEdge(query->pInteriorEdges + counter, query->pInteriorEdges + counter + 1,
-						        query->pLeftNodes + i, query->pRightNodes + j, 1,
-						        vqs__queueFlagDist(flags, requiredFlags, priority));
+						             query->pLeftNodes + i, query->pRightNodes + j, 1,
+						             vqs__queueFlagDist(flags, requiredFlags, priority));
 					}
 					counter += 2u;
 				}
@@ -398,12 +398,12 @@ static VkResult vqs__queryBuildGraph(VqsQuery query) {
 
 	// BUILD GRAPH
 	for (uint32_t i = 0; i < query->leftCount; ++i) { // S -> LEFT NODES
-		vqs__addEdge(query->pLeftEdges + (i * 2), query->pLeftEdges + (i * 2 + 1), query->pSNode, query->pLeftNodes + i, 0,
-		        0);
+		vqs__addEdge(query->pLeftEdges + (i * 2), query->pLeftEdges + (i * 2 + 1), query->pSNode, query->pLeftNodes + i,
+		             0, 0);
 	}
 	for (uint32_t i = 0; i < query->rightCount; ++i) { // RIGHT NODES -> T
-		vqs__addEdge(query->pRightEdges + (i * 2), query->pRightEdges + (i * 2 + 1), query->pRightNodes + i, query->pTNode,
-		        1, 0);
+		vqs__addEdge(query->pRightEdges + (i * 2), query->pRightEdges + (i * 2 + 1), query->pRightNodes + i,
+		             query->pTNode, 1, 0);
 	}
 	vqs__queryBuildInteriorEdges(query, true);
 

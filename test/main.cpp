@@ -1,7 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
-#define VQS_IMPLEMENTATION
 #include "vk_queue_selector.h"
 
 #include <cstdio>

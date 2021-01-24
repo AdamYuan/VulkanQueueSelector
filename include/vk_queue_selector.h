@@ -122,11 +122,7 @@ struct VqsQuery_T {
 		(x) = NULL;                                                                                                    \
 	}
 #define VQS_ALLOC(x, type, count)                                                                                      \
-	{                                                                                                                  \
-		if (x)                                                                                                         \
-			VQS_FREE(x);                                                                                               \
-		(x) = (type *)calloc(count, sizeof(type));                                                                     \
-	}
+	{ (x) = (type *)calloc(count, sizeof(type)); }
 #define VQS_ALLOC_VK(x, type, count)                                                                                   \
 	{                                                                                                                  \
 		VQS_ALLOC(x, type, count);                                                                                     \
@@ -497,7 +493,6 @@ static void vqs__queryFree(VqsQuery query) {
 // API definitions //
 /////////////////////
 VkResult vqsCreateQuery(const VqsQueryCreateInfo *pCreateInfo, VqsQuery *pQuery) {
-	*pQuery = NULL;
 	VQS_ALLOC_VK(*pQuery, struct VqsQuery_T, 1);
 
 #define TRY_STMT(stmt)                                                                                                 \

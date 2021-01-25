@@ -116,18 +116,18 @@ struct VqsQuery_T {
 	uint32_t *resultQueueFamilyIndices, *resultPresentQueueFamilyIndices, *queueFamilyCounters;
 };
 
-#define VQS_FREE(x)                                                                                                    \
-	{                                                                                                                  \
-		free(x);                                                                                                       \
-		(x) = NULL;                                                                                                    \
+#define VQS_FREE(x) \
+	{ \
+		free(x); \
+		(x) = NULL; \
 	}
-#define VQS_ALLOC(x, type, count)                                                                                      \
+#define VQS_ALLOC(x, type, count) \
 	{ (x) = (type *)calloc(count, sizeof(type)); }
-#define VQS_ALLOC_VK(x, type, count)                                                                                   \
-	{                                                                                                                  \
-		VQS_ALLOC(x, type, count);                                                                                     \
-		if (x == NULL)                                                                                                 \
-			return VK_ERROR_OUT_OF_HOST_MEMORY;                                                                        \
+#define VQS_ALLOC_VK(x, type, count) \
+	{ \
+		VQS_ALLOC(x, type, count); \
+		if (x == NULL) \
+			return VK_ERROR_OUT_OF_HOST_MEMORY; \
 	}
 
 static uint32_t vqs__queueFlagDist(uint32_t l, uint32_t r, float f) {
@@ -495,13 +495,13 @@ static void vqs__queryFree(VqsQuery query) {
 VkResult vqsCreateQuery(const VqsQueryCreateInfo *pCreateInfo, VqsQuery *pQuery) {
 	VQS_ALLOC_VK(*pQuery, struct VqsQuery_T, 1);
 
-#define TRY_STMT(stmt)                                                                                                 \
-	{                                                                                                                  \
-		VkResult result = stmt;                                                                                        \
-		if (result != VK_SUCCESS) {                                                                                    \
-			vqsDestroyQuery(*pQuery);                                                                                  \
-			return result;                                                                                             \
-		}                                                                                                              \
+#define TRY_STMT(stmt) \
+	{ \
+		VkResult result = stmt; \
+		if (result != VK_SUCCESS) { \
+			vqsDestroyQuery(*pQuery); \
+			return result; \
+		} \
 	}
 	TRY_STMT(vqs__queryInit(*pQuery, pCreateInfo));
 	TRY_STMT(vqs__queryPreprocessPresentQueues(*pQuery));
@@ -514,14 +514,14 @@ VkResult vqsPerformQuery(VqsQuery query) {
 	vqs__BinaryGraph *graph = NULL;
 	VQS_ALLOC_VK(graph, vqs__BinaryGraph, 1);
 
-#define TRY_STMT(stmt)                                                                                                 \
-	{                                                                                                                  \
-		VkResult result = stmt;                                                                                        \
-		if (result != VK_SUCCESS) {                                                                                    \
-			vqs__graphFree(graph);                                                                                     \
-			VQS_FREE(graph);                                                                                           \
-			return result;                                                                                             \
-		}                                                                                                              \
+#define TRY_STMT(stmt) \
+	{ \
+		VkResult result = stmt; \
+		if (result != VK_SUCCESS) { \
+			vqs__graphFree(graph); \
+			VQS_FREE(graph); \
+			return result; \
+		} \
 	}
 	TRY_STMT(vqs__graphInit(graph, query));
 	TRY_STMT(vqs__graphMainAlgorithm(graph, query));

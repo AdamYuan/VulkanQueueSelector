@@ -511,22 +511,25 @@ VkResult vqsCreateQuery(const VqsQueryCreateInfo *pCreateInfo, VqsQuery *pQuery)
 }
 
 VkResult vqsPerformQuery(VqsQuery query) {
-	vqs__BinaryGraph graph;
+	vqs__BinaryGraph *graph = NULL;
+	VQS_ALLOC_VK(graph, vqs__BinaryGraph, 1);
 
 #define TRY_STMT(stmt)                                                                                                 \
 	{                                                                                                                  \
 		VkResult result = stmt;                                                                                        \
 		if (result != VK_SUCCESS) {                                                                                    \
-			vqs__graphFree(&graph);                                                                                    \
+			vqs__graphFree(graph);                                                                                     \
+			VQS_FREE(graph);                                                                                           \
 			return result;                                                                                             \
 		}                                                                                                              \
 	}
-	TRY_STMT(vqs__graphInit(&graph, query));
-	TRY_STMT(vqs__graphMainAlgorithm(&graph, query));
-	TRY_STMT(vqs__queryFetchResults(query, &graph));
+	TRY_STMT(vqs__graphInit(graph, query));
+	TRY_STMT(vqs__graphMainAlgorithm(graph, query));
+	TRY_STMT(vqs__queryFetchResults(query, graph));
 #undef TRY_STMT
 
-	vqs__graphFree(&graph);
+	vqs__graphFree(graph);
+	VQS_FREE(graph);
 	return VK_SUCCESS;
 }
 

@@ -216,13 +216,13 @@ static int32_t vqs__graphMcmfWithLimits(vqs__BinaryGraph *graph, int32_t flow, u
 					--leftFlowLimits[i];
 				}
 			}
+			if (full)
+				return flow;
 			for (uint32_t i = 0; i < graph->interiorEdgeCount; i += 2) { // cancel negative rings
 				vqs__Edge *e = graph->pInteriorEdges + i;
 				if (e->cost > minCost)
 					e->rev->cap = 0;
 			}
-			if (full)
-				return flow;
 		}
 
 		while (vqs__graphSpfa(graph)) {
@@ -511,23 +511,22 @@ VkResult vqsCreateQuery(const VqsQueryCreateInfo *pCreateInfo, VqsQuery *pQuery)
 }
 
 VkResult vqsPerformQuery(VqsQuery query) {
-	vqs__BinaryGraph *graph = NULL;
-	VQS_ALLOC_VK(graph, vqs__BinaryGraph, 1);
+	vqs__BinaryGraph graph;
 
 #define TRY_STMT(stmt)                                                                                                 \
 	{                                                                                                                  \
 		VkResult result = stmt;                                                                                        \
-		if (result != VK_SUCCESS)                                                                                      \
+		if (result != VK_SUCCESS) {                                                                                    \
+			vqs__graphFree(&graph);                                                                                    \
 			return result;                                                                                             \
+		}                                                                                                              \
 	}
-	TRY_STMT(vqs__graphInit(graph, query));
-	TRY_STMT(vqs__graphMainAlgorithm(graph, query));
-	TRY_STMT(vqs__queryFetchResults(query, graph));
+	TRY_STMT(vqs__graphInit(&graph, query));
+	TRY_STMT(vqs__graphMainAlgorithm(&graph, query));
+	TRY_STMT(vqs__queryFetchResults(query, &graph));
 #undef TRY_STMT
 
-	vqs__graphFree(graph);
-	VQS_FREE(graph);
-
+	vqs__graphFree(&graph);
 	return VK_SUCCESS;
 }
 

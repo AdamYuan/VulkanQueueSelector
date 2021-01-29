@@ -1,10 +1,12 @@
-// vk_queue_selector - v1.1.0 - https://github.com/AdamYuan/
+// vk_queue_selector - v1.1.1 - https://github.com/AdamYuan/
 //
 // Use this in *one* source file
 //   #define VQS_IMPLEMENTATION
 //   #include "vk_queue_selector.h"
 //
-// version 1.1.0 (2021-01-29) ensure the correctness by running dinic at first
+// version 1.1.1 (2021-01-29) modify edge cost calculation to better handle 
+//                            priority
+//         1.1.0 (2021-01-29) ensure the correctness by running dinic at first
 //                            and mcmf at last
 //
 //         1.0.3 (2021-01-24) separate vqs__BinaryGraph from VqsQuery_T
@@ -136,6 +138,8 @@ static uint32_t vqs__u32_min(uint32_t a, uint32_t b) { return a < b ? a : b; }
 
 static int32_t vqs__i32_min(int32_t a, int32_t b) { return a < b ? a : b; }
 
+static float vqs__f32_min(float a, float b) { return a < b ? a : b; }
+
 static float vqs__f32_max(float a, float b) { return a > b ? a : b; }
 
 static uint32_t vqs__queueFlagDist(uint32_t l, uint32_t r, float f) {
@@ -146,7 +150,9 @@ static uint32_t vqs__queueFlagDist(uint32_t l, uint32_t r, float f) {
 	i = (i & 0x33333333u) + ((i >> 2u) & 0x33333333u);
 	i = (((i + (i >> 4u)) & 0x0F0F0F0Fu) * 0x01010101u) >> 24u;
 	// multiplied by f
-	int32_t ret = (i + 1) * f * 100.0f;
+	f = vqs__f32_min(f, 1.0f);
+	f = vqs__f32_max(f, 0.0f);
+	int32_t ret = f * 100.0f + i * 10;
 	return (uint32_t)ret;
 }
 
@@ -336,7 +342,7 @@ static uint32_t vqs__graphBuildInteriorEdges(vqs__BinaryGraph *graph, const VqsQ
 					if (buildEdge) {
 						vqs__addEdge(graph->pInteriorEdges + counter, graph->pInteriorEdges + counter + 1,
 						             graph->pLeftNodes + i, graph->pRightNodes + j, 1,
-						             vqs__queueFlagDist(flags, requiredFlags, priority));
+						             vqs__queueFlagDist(flags, requiredFlags, 1.0f - priority));
 					}
 					counter += 2u;
 				}
@@ -345,7 +351,7 @@ static uint32_t vqs__graphBuildInteriorEdges(vqs__BinaryGraph *graph, const VqsQ
 					if (buildEdge) {
 						vqs__addEdge(graph->pInteriorEdges + counter, graph->pInteriorEdges + counter + 1,
 						             graph->pLeftNodes + i, graph->pRightNodes + j, 1,
-						             vqs__queueFlagDist(flags, requiredFlags, priority));
+						             vqs__queueFlagDist(flags, requiredFlags, 1.0f - priority));
 					}
 					counter += 2u;
 				}

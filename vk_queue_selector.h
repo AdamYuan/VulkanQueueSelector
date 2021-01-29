@@ -4,7 +4,7 @@
 //   #define VQS_IMPLEMENTATION
 //   #include "vk_queue_selector.h"
 //
-// version 1.1.1 (2021-01-29) modify edge cost calculation to better handle 
+// version 1.1.1 (2021-01-29) modify edge cost calculation to better handle
 //                            priority
 //         1.1.0 (2021-01-29) ensure the correctness by running dinic at first
 //                            and mcmf at last

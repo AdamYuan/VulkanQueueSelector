@@ -1,10 +1,13 @@
-// vk_queue_selector - v1.0.3 - https://github.com/AdamYuan/
+// vk_queue_selector - v1.1.0 - https://github.com/AdamYuan/
 //
 // Use this in *one* source file
 //   #define VQS_IMPLEMENTATION
 //   #include "vk_queue_selector.h"
 //
-// version 1.0.3 (2021-01-24) separate vqs__BinaryGraph from VqsQuery_T
+// version 1.1.0 (2021-01-29) ensure the correctness by running dinic at first
+//                            and mcmf at last
+//
+//         1.0.3 (2021-01-24) separate vqs__BinaryGraph from VqsQuery_T
 //         1.0.2 (2021-01-24) name private struct and func with "vqs__" prefix
 //         1.0.1 (2021-01-24) move all graph-related things to vqsPerformQuery
 //                            fix leaks and memory errors
@@ -132,6 +135,8 @@ struct VqsQuery_T {
 static uint32_t vqs__u32_min(uint32_t a, uint32_t b) { return a < b ? a : b; }
 
 static int32_t vqs__i32_min(int32_t a, int32_t b) { return a < b ? a : b; }
+
+static float vqs__f32_max(float a, float b) { return a > b ? a : b; }
 
 static uint32_t vqs__queueFlagDist(uint32_t l, uint32_t r, float f) {
 	const uint32_t kMask = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
@@ -668,16 +673,15 @@ void vqsEnumerateDeviceQueueCreateInfos(VqsQuery query, uint32_t *pDeviceQueueCr
 			family = query->resultQueueFamilyIndices[i];
 			queueIndex = (--query->queueFamilyCounters[family]) % query->queueFamilyProperties[family].queueCount;
 
-			if (query->queueRequirements[i].priority > familyPriorityOffsets[family][queueIndex]) // set to max priority
-				familyPriorityOffsets[family][queueIndex] = query->queueRequirements[i].priority;
+			familyPriorityOffsets[family][queueIndex] =
+			    vqs__f32_max(familyPriorityOffsets[family][queueIndex], query->queueRequirements[i].priority);
 
 			family = query->resultPresentQueueFamilyIndices[i];
 			if (family != UINT32_MAX) {
 				queueIndex = (--query->queueFamilyCounters[family]) % query->queueFamilyProperties[family].queueCount;
 
-				if (query->queueRequirements[i].priority >
-				    familyPriorityOffsets[family][queueIndex]) // set to max priority
-					familyPriorityOffsets[family][queueIndex] = query->queueRequirements[i].priority;
+				familyPriorityOffsets[family][queueIndex] =
+				    vqs__f32_max(familyPriorityOffsets[family][queueIndex], query->queueRequirements[i].priority);
 			}
 		}
 

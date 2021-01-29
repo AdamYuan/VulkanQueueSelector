@@ -1,7 +1,7 @@
 # Vulkan Queue Selector
 An single-header c library to select optimal vulkan queues.
 ## Usage
-Check [test/main.cpp](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/test/main.cpp) and [include/vk_queue_selector.h](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/include/vk_queue_selector.h) for details.
+Check [vk_queue_selector.h](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/vk_queue_selector.h) and [test/main.cpp](https://github.com/AdamYuan/VulkanQueueSelector/blob/main/test/main.cpp) for details.
 ```c++
 VqsQueueRequirements requirements[] = {
     {VK_QUEUE_GRAPHICS_BIT, 1.0f, surface}, // "surface" is a VkSurfaceKHR, indicating a present queue is needed

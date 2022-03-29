@@ -16,8 +16,8 @@ createInfo.pQueueRequirements = requirements;
 
 // Specify vulkan functions if necessary
 VqsVulkanFunctions functions = {};
-functions.vkGetPhysicalDeviceQueueFamilyProperties = myGetPhysicalDeviceQueueFamilyProperties;
-functions.vkGetPhysicalDeviceSurfaceSupportKHR = myGetPhysicalDeviceSurfaceSupportKHR;
+functions.vkGetPhysicalDeviceQueueFamilyProperties = vkGetPhysicalDeviceQueueFamilyProperties;
+functions.vkGetPhysicalDeviceSurfaceSupportKHR = vkGetPhysicalDeviceSurfaceSupportKHR;
 ccreateInfo.pVulkanFunctions = &functions;
 
 VqsQuery query;
